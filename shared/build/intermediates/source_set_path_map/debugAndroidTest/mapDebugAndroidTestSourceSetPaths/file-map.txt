@@ -1,0 +1,5 @@
+com.yunext.iot.shared.test.shared-androidTest-0 D:\git\HD-IoT\shared\build\generated\res\resValues\androidTest\debug
+com.yunext.iot.shared.test.shared-mergeDebugAndroidTestResources-1 D:\git\HD-IoT\shared\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+com.yunext.iot.shared.test.shared-mergeDebugAndroidTestResources-2 D:\git\HD-IoT\shared\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+com.yunext.iot.shared.test.shared-debugAndroidTest-3 D:\git\HD-IoT\shared\build\intermediates\merged_res\debugAndroidTest\mergeDebugAndroidTestResources
+com.yunext.iot.shared.test.shared-debug-4 D:\git\HD-IoT\shared\build\intermediates\packaged_res\debug\packageDebugResources

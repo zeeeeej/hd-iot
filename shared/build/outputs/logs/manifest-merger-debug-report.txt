@@ -1,0 +1,16 @@
+-- Merging decision tree log ---
+manifest
+ADDED from D:\git\HD-IoT\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest13922180681452582878.xml:2:13-83
+INJECTED from D:\git\HD-IoT\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest13922180681452582878.xml:2:13-83
+	package
+		INJECTED from D:\git\HD-IoT\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest13922180681452582878.xml
+	xmlns:android
+		ADDED from D:\git\HD-IoT\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest13922180681452582878.xml:2:23-81
+uses-sdk
+INJECTED from D:\git\HD-IoT\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest13922180681452582878.xml reason: use-sdk injection requested
+INJECTED from D:\git\HD-IoT\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest13922180681452582878.xml
+INJECTED from D:\git\HD-IoT\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest13922180681452582878.xml
+	android:targetSdkVersion
+		INJECTED from D:\git\HD-IoT\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest13922180681452582878.xml
+	android:minSdkVersion
+		INJECTED from D:\git\HD-IoT\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest13922180681452582878.xml
