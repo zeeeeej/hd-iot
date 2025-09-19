@@ -18,16 +18,16 @@ kotlin {
         }
     }
     
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
+//    listOf(
+//        iosX64(),
+//        iosArm64(),
+//        iosSimulatorArm64()
+//    ).forEach { iosTarget ->
+//        iosTarget.binaries.framework {
+//            baseName = "ComposeApp"
+//            isStatic = true
+//        }
+//    }
     
     jvm("desktop")
     
@@ -56,6 +56,19 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
         }
+    }
+}
+
+
+val jniLibs = configurations.create("jniLibs")
+
+dependencies {
+    // "jniLibs"(files("path/to/your/jni/libs")) // 如果有预编译的 JNI 库
+}
+
+tasks.named<Copy>("desktopProcessResources") {
+    from(jniLibs) {
+        into("jni")
     }
 }
 

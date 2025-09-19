@@ -1,1 +1,0 @@
-C:\Users\hdlinux\.konan\kotlin-native-prebuilt-windows-x86_64-2.2.0\klib\commonized\2.2.0
