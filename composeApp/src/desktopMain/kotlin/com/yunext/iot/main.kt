@@ -15,6 +15,7 @@ import androidx.compose.ui.window.rememberWindowState
 import com.yunext.iot.di.KoinInit
 
 import com.yunext.iot.jni.NativeLibrary
+import kotlinx.coroutines.delay
 import kotlin.random.Random
 
 fun main() = application {
@@ -29,13 +30,16 @@ fun main() = application {
         state =  rememberWindowState
 
     ) {
-
+       LaunchedEffect(Unit){
+           delay(100)
+           NativeLibrary()
+       }
         App()
         var txt by remember {
             mutableStateOf("")
         }
         Button (onClick = {
-            NativeLibrary()
+
 //            NativeFunctions.init()
 
             // 自动加载 JNI 库
