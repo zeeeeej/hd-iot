@@ -15,6 +15,9 @@ class NativeFunctions {
         @JvmStatic
         external fun uartVersion(type:Int): String
 
+        @JvmStatic
+        external fun uartList(): Array<String>
+
 
     }
 }

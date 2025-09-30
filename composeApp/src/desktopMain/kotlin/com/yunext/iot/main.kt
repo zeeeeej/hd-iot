@@ -2,21 +2,34 @@ package com.yunext.iot
 
 import androidx.compose.material.Button
 import androidx.compose.material.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
+import com.yunext.iot.di.KoinInit
 
 import com.yunext.iot.jni.NativeLibrary
 import kotlin.random.Random
 
 fun main() = application {
+
+    KoinInit.init { }
+
+    val rememberWindowState = rememberWindowState(size = DpSize(1280.dp,720.dp))
     Window(
         onCloseRequest = ::exitApplication,
-        title = "HD-IoT",
+        title = "海大摄像头v1.0.0-alpha001",
+        resizable = false,
+        state =  rememberWindowState
+
     ) {
+
         App()
         var txt by remember {
             mutableStateOf("")

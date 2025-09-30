@@ -18,6 +18,18 @@ kotlinx-coroutines = "1.10.2"
 ktor = "3.2.0"
 logback = "1.5.18"
 
+yunext = "0.0.8"
+zhongguose = "0.0.1"
+zeeeeej = "1.0.2"
+navigation = "2.8.0-alpha08"
+kotlinx-datetime = "0.6.1"
+kotlinx-serialization = "1.7.0"
+
+# Koin
+koin = "3.6.0-alpha3"
+koinCompose = "3.6.0-alpha3"
+koinComposeMultiplatform = "1.2.0-alpha3"
+
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
@@ -35,6 +47,22 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 ktor-serverCore = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
 ktor-serverNetty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktor-serverTestHost = { module = "io.ktor:ktor-server-test-host-jvm", version.ref = "ktor" }
+yunext-context = { module = "io.github.zeeeeej:yunext-context", version.ref = "yunext" }
+yunext-common = { module = "io.github.zeeeeej:yunext-common", version.ref = "yunext" }
+#yunext-ble = { module = "io.github.zeeeeej:yunext-ble", version.ref = "yunext" }
+zeeeeej-zhongguohong = { module = "io.github.zeeeeej:zhongguohong", version.ref = "zeeeeej" }
+zeeeeej-zhongguohong-compose = { module = "io.github.zeeeeej:zhongguohong-compose", version.ref = "zeeeeej" }
+navigation-common = { module = "org.jetbrains.androidx.navigation:navigation-common", version.ref = "navigation" }
+navigation-runtime = { module = "org.jetbrains.androidx.navigation:navigation-runtime", version.ref = "navigation" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation" }
+# [serialization] https://github.com/Kotlin/kotlinx.serialization/tree/master
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
+# Koin https://github.com/pererikbergman/kmp-viewmodel
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinCompose" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koinComposeMultiplatform" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -45,3 +73,9 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+
+
+[bundles]
+yunext = ["yunext-context", "yunext-common", "zeeeeej-zhongguohong", "zeeeeej-zhongguohong-compose"]
+navigation = ["navigation-common", "navigation-compose", "navigation-runtime"]
+kotlinxExt = ["kotlinx-datetime", "kotlinx-serialization-json"]

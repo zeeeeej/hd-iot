@@ -48,6 +48,15 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(projects.shared)
+
+
+            implementation(libs.bundles.navigation)
+            implementation(libs.bundles.yunext)
+            // Koin
+            api(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.bundles.kotlinxExt)
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
