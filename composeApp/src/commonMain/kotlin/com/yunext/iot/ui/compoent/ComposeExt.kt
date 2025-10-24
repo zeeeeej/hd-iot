@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import color
 import randomZhongGuoSe
 
-internal val DEFAULT_DP = 12.dp
+internal val DEFAULT_DP = 0.dp
 
 fun Modifier.randomBG(padding: Dp = DEFAULT_DP): Modifier {
     return this.composed {

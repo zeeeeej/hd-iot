@@ -16,7 +16,7 @@ import com.yunext.iot.ui.work.SerialScreen
 import com.yunext.iot.ui.work.SettingScreen
 
 @Composable
-fun WorkScreen(modifier: Modifier,menuType: MenuTypeVO){
+fun WorkScreen(modifier: Modifier,menuType: MenuTypeVO,receiveData:String ,onSend: (String) -> Unit){
     val navController = rememberNavController()
     val currentBackStackEntryAsState by navController.currentBackStackEntryAsState()
     LaunchedEffect(menuType){
@@ -34,7 +34,7 @@ fun WorkScreen(modifier: Modifier,menuType: MenuTypeVO){
         startDestination = MenuTypeVO.Main.name
     ) {
         composable(route = MenuTypeVO.Main.name) {
-            MainScreen(Modifier)
+            MainScreen(Modifier, receiveData = receiveData,onSend = onSend)
         }
         composable(route = MenuTypeVO.Serial.name) {
             SerialScreen(Modifier)
