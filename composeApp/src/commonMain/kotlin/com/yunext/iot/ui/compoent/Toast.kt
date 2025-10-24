@@ -17,6 +17,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,35 +53,35 @@ internal fun Toast(
             toast = ToastData.Show(msg)
             delay(2000)
             toast = ToastData.Nan
-            onDismiss()
+        } else {
+            toast = ToastData.Nan
         }
+        onDismiss()
     }
     AnimatedVisibility(
         toast is ToastData.Show, modifier = modifier
     ) {
-        content?.invoke(toast) ?: ToastInternal(Modifier
-            .wrapContentSize(), toast,black)
+        content?.invoke(toast) ?: ToastInternal(
+            Modifier.wrapContentSize(), toast, black
+        )
     }
 }
 
 @Composable
-private fun ToastInternal(modifier: Modifier = Modifier, toastData: ToastData,black:Boolean) {
+private fun ToastInternal(modifier: Modifier = Modifier, toastData: ToastData, black: Boolean) {
     if (toastData is ToastData.Show) {
         Box(
             modifier = modifier
 
-                .clip(RoundedCornerShape(16.dp))
-                .shadow(4.dp)
-                .background(if (black) Color.Black else Color.White)
-                .padding(16.dp), contentAlignment = Alignment.Center
+                .clip(RoundedCornerShape(16.dp)).shadow(4.dp)
+                .background(if (black) Color.Black else Color.White).padding(16.dp),
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = toastData.msg,
                 modifier = Modifier.wrapContentSize(),
                 style = TextStyle.Default.copy(
-                    color = Color.Red,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    color = Color.Red, fontSize = 18.sp, fontWeight = FontWeight.Bold
                 )
             )
         }

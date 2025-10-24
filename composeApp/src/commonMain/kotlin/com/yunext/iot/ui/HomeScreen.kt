@@ -10,13 +10,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,6 +39,10 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     val state by viewModel.state.collectAsState(HomeState.EMPTY)
     var selectedMenu: MenuTypeVO by remember {
         mutableStateOf(MenuTypeVO.Main)
+    }
+
+    var selectComDialog: Boolean by remember {
+        mutableStateOf(false)
     }
 
     var toast by remember { mutableStateOf("") }
@@ -81,13 +80,31 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                     selectedMenu = selectedMenu,
                     onMenuChanged = {
                         selectedMenu = it.type
-                    }, comList = state.comList, com = state.com, onComChanged = {
-                        viewModel.selectCom(it)
-                    }, onRefreshCom = {
+                    },
+                    comList = state.comList,
+                    comInfoList = state.comInfoList,
+                    onComSelect = {
+                        viewModel.addComInfo(it.path)
+                        selectComDialog = false
+                    },
+                    onComInfoList = {
+                        viewModel.listComInfo()
+                    },
+                    onComInfoAdd = {
                         viewModel.refreshCom()
-                    }, onSwitchCom = {
-                        viewModel.switchCom()
-                    })
+                        selectComDialog = true
+                    },
+                    onComInfoDisconnect = {
+                        viewModel.disconnectComInfo(it.path)
+                    },
+                    onComInfoConnect = {
+                        viewModel.connectComInfo(it.path)
+                    },
+                    onComInfoDelete = {
+                        viewModel.deleteComInfo(it)
+                    },
+                    selectComDialog = selectComDialog,
+                )
             }
 
             Spacer(Modifier.width(32.dp))
@@ -110,9 +127,17 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                         Modifier,
                         menuType = selectedMenu,
                         receiveData = state.receiveData,
-                        onSend = {
-                            viewModel.send(it)
-                        })
+                        comInfoList = state.comInfoList,
+                        onUartSend = { info, data ->
+                            viewModel.send(info, data)
+                        },
+                        onUartDisconnect = {
+                            viewModel.disconnectComInfo(it.path)
+                        },
+                        onUartConnect = {
+                            viewModel.connectComInfo(it.path)
+                        }, sendEffect = state.sendUartDataEffect
+                    )
                 }
 
                 Spacer(Modifier.height(32.dp))
@@ -128,12 +153,40 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             }
         }
 
+
+        /*AnimatedVisibility(
+            selectComDialog, modifier = Modifier
+                .wrapContentSize()
+                .aspectRatio(16 / 9f)
+                .align(Alignment.Center)
+        ) {
+            Box(
+                Modifier.clip(RoundedCornerShape(16.dp))
+                    .shadow(4.dp)
+                    .background(Color.White)
+                    .padding(16.dp), contentAlignment = Alignment.Center
+            ) {
+                // 端口
+                UartComSpit(
+                    modifier = Modifier,
+                    list = state.comList,
+                    onSelect = {
+                        viewModel.addComInfo(it.path)
+                        selectComDialog = false
+                    }
+                )
+            }
+
+        }*/
+
+
+
         Toast(
             Modifier
                 .wrapContentSize()
 //                .heightIn(min = 90.dp, max = 200.dp)
                 .aspectRatio(16 / 9f)
-                .align(Alignment.Center), toast + toast + toast
+                .align(Alignment.Center), toast
         ) {
             viewModel.clearToast()
         }

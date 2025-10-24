@@ -1,12 +1,18 @@
 package com.yunext.iot.ui.compoent
 
+import androidx.compose.runtime.Stable
+
+@Stable
 sealed interface Effect<out I, out O> {
     data object Idle : Effect<Nothing, Nothing>
+
     data class Progress<I, Progress : Any>(val input: I, val progress: Progress) :
         Effect<I, Nothing>
 
     data class Success<I, O>(val input: I, val output: O) : Effect<I, O>
+
     data class Fail<I>(val input: I, val output: kotlin.Throwable) : Effect<I, Nothing>
+
     data object Completed : Effect<Nothing, Nothing>
 }
 

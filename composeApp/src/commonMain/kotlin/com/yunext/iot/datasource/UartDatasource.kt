@@ -1,6 +1,6 @@
 package com.yunext.iot.datasource
 
-import com.yunext.iot.model.Com
+import com.yunext.iot.domain.Com
 import com.yunext.iot.model.UartManager
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume

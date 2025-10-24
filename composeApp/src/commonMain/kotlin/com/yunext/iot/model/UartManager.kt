@@ -1,11 +1,6 @@
 package com.yunext.iot.model
 
-//data class Com(
-//    val path: String,
-//    val handle: Long
-//)
-
-typealias Com = String
+import com.yunext.iot.domain.Com
 
 interface UartManager {
     fun open(path: String, rate: Int): Long

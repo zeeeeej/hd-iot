@@ -1,6 +1,7 @@
 package com.yunext.iot.model
 
 import NativeFunctions
+import com.yunext.iot.domain.Com
 
 actual class UartManagerImpl : UartManager {
     override fun open(path: String, rate: Int): Long {
