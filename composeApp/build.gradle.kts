@@ -56,6 +56,7 @@ kotlin {
             api(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.bundles.kotlinxExt)
+            // implementation(libs.flippable)
 
         }
         commonTest.dependencies {

@@ -13,7 +13,7 @@ sealed interface ComStatus {
     data class CONNECTED(val handle: Long) : ComStatus
 }
 
-data class ComInfo(val com: Com, val status: ComStatus) {
+data class ComInfo(val com: Com, val rate: Int, val status: ComStatus) {
 
 }
 
@@ -25,7 +25,7 @@ val ComInfo.opened: Boolean
     }
 
 
-interface ComInfoDomain{
+interface ComInfoDomain {
     /**
      * 查询本次串口
      */
@@ -34,7 +34,7 @@ interface ComInfoDomain{
     /**
      * 查询串口
      */
-    suspend fun findComInfo(com:Com): ComInfo?
+    suspend fun findComInfo(com: Com): ComInfo?
 
     /**
      * 关闭所有串口
@@ -44,16 +44,21 @@ interface ComInfoDomain{
     /**
      * 删除串口
      */
-    suspend fun deleteComInfo(com: Com):List<ComInfo>
+    suspend fun deleteComInfo(com: Com): List<ComInfo>
 
     /**
      * 添加串口
      */
-    suspend fun addComInfo(com: Com):List<ComInfo>
+    suspend fun addComInfo(com: Com): List<ComInfo>
+
+    /**
+     * 添加串口
+     */
+    suspend fun editComInfo(info: ComInfo): List<ComInfo>
 
 }
 
-interface ComDomain{
+interface ComDomain {
     /**
      * 查询本次串口
      */

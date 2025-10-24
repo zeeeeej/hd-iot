@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yunext.iot.domain.Com
 import com.yunext.iot.domain.ComException
+import com.yunext.iot.domain.ComInfo
 import com.yunext.iot.domain.ComStatus
 import com.yunext.iot.repository.UartRepository
 import com.yunext.iot.ui.compoent.Effect
@@ -198,7 +199,7 @@ class HomeVM(private val uartRepo: UartRepository) : ViewModel() {
     fun connectComInfo(com: String) {
         viewModelScope.launch {
             try {
-                val opened = uartRepo.open(com, 460800)
+                val opened = uartRepo.open(com, 0)
                 println("open ${com} result:$opened")
                 if (opened) {
                     // debugWrite(comVO.com)
@@ -220,6 +221,24 @@ class HomeVM(private val uartRepo: UartRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 val list = uartRepo.deleteComInfo(info.path)
+                comInfoListFlow.value = list.map {
+                    ComInfoVO(it)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun editComRate(info: ComInfoVO) {
+        println("$TAG ::editComRate")
+        viewModelScope.launch {
+            try {
+                val list = uartRepo.editComInfo(
+                    ComInfo(
+                        com = info.path, rate = info.rate, status = info.status
+                    )
+                )
                 comInfoListFlow.value = list.map {
                     ComInfoVO(it)
                 }

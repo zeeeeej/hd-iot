@@ -1,5 +1,6 @@
 package com.yunext.iot.ui.uart
 
+import ZhongGuoSe
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,11 +18,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.onClick
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +37,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -42,10 +46,10 @@ import com.yunext.iot.domain.ComInfo
 import com.yunext.iot.domain.ComStatus
 import randomZhongGuoSe
 
-data class ComInfoVO(val path: String, val status: ComStatus)
+data class ComInfoVO(val path: String, val rate: Int, val status: ComStatus)
 
 fun ComInfoVO(comInfo: ComInfo): ComInfoVO {
-    return ComInfoVO(path = comInfo.com, status = comInfo.status)
+    return ComInfoVO(path = comInfo.com, rate = comInfo.rate, status = comInfo.status)
 }
 
 @Composable
@@ -162,7 +166,7 @@ internal fun UartInfoListSplit(
     info: ComInfoVO?,
     onSelected: (ComInfoVO) -> Unit,
 
-) {
+    ) {
     LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
         items(items = list, { it }) { item ->
             UartInfoItem(modifier = Modifier.clickable {
@@ -211,6 +215,14 @@ private fun UartInfoItem(
             style = MaterialTheme.typography.bodySmall,
             color = if (areSelected()) Color.Red else Color.Gray
         )
+        Text(
+            modifier = Modifier
+                .border(color = randomZhongGuoSe().color, width = 1.dp)
+                .padding(horizontal = 6.dp, vertical = 4.dp),
+            text = info.rate.toString(),
+            style = MaterialTheme.typography.bodySmall,
+            color = ZhongGuoSe.金叶黄.color
+        )
         if (!simple) {
             Spacer(Modifier.width(4.dp))
             Text(
@@ -258,7 +270,16 @@ internal fun UartInfoItemV2(
     modifier: Modifier, info: ComInfoVO,
     onConnect: () -> Unit,
     onDisconnect: () -> Unit,
+    onEditRate: (Int) -> Unit,
 ) {
+
+    var editRate: Boolean by remember {
+        mutableStateOf(false)
+    }
+
+    var currentRate: Int by remember {
+        mutableStateOf(info.rate)
+    }
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
 
         Text(
@@ -286,6 +307,42 @@ internal fun UartInfoItemV2(
             color = Color.Gray
         )
         Spacer(Modifier.width(4.dp))
+        if (editRate) {
+            TextField(
+                value = if (currentRate == 0) "" else currentRate.toString(),
+                onValueChange = { v ->
+                    try {
+                        currentRate = v.toInt()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        currentRate = 0
+                    }
+                },
+                modifier = Modifier.wrapContentSize(),
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Ascii),
+//            keyboardActions = KeyboardActions.Default.onSend,
+                trailingIcon = {
+                    Text("设置波特率", modifier = Modifier.clickable {
+                        onEditRate(currentRate)
+                        editRate = false
+                    })
+                }
+            )
+        } else {
+            Text(
+                modifier = Modifier
+                    .border(color = randomZhongGuoSe().color, width = 1.dp)
+                    .padding(horizontal = 6.dp, vertical = 4.dp)
+                    .clickable(info.status == ComStatus.DISCONNECTED) { editRate = true },
+                text = info.rate.toString(),
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.primary,
+                    textDecoration = TextDecoration.Underline
+                ),
+                color = ZhongGuoSe.金叶黄.color
+            )
+        }
+
 
         when (info.status) {
             is ComStatus.CONNECTED -> {

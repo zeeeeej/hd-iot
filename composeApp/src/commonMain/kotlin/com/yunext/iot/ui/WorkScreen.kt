@@ -27,6 +27,7 @@ fun WorkScreen(
     onUartSend: (ComInfoVO, String) -> Unit,
     onUartConnect: (ComInfoVO) -> Unit,
     onUartDisconnect: (ComInfoVO) -> Unit,
+    onEditRate: (ComInfoVO) -> Unit,
 ) {
     val navController = rememberNavController()
     val currentBackStackEntryAsState by navController.currentBackStackEntryAsState()
@@ -53,6 +54,7 @@ fun WorkScreen(
                 onDisconnect = onUartDisconnect,
                 comInfoList = comInfoList,
                 sendEffect = sendEffect,
+                onEditRate = onEditRate
             )
         }
         composable(route = MenuTypeVO.Serial.name) {

@@ -136,7 +136,10 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                         },
                         onUartConnect = {
                             viewModel.connectComInfo(it.path)
-                        }, sendEffect = state.sendUartDataEffect
+                        }, sendEffect = state.sendUartDataEffect,
+                        onEditRate = {
+                            viewModel.editComRate(it)
+                        }
                     )
                 }
 

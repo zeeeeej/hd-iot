@@ -38,7 +38,18 @@ class UartRepositoryImpl(private val uartDatasource: UartDatasource) : UartRepos
     }
 
     override suspend fun addComInfo(com: Com): List<ComInfo> {
-        val newMap = _comMap.value + (com to ComInfo(com = com, status = ComStatus.DISCONNECTED))
+        val newMap = _comMap.value + (com to ComInfo(
+            com = com,
+            status = ComStatus.DISCONNECTED,
+            rate = DEFAULT_RATE
+        ))
+        _comMap.value = newMap
+        return _comMap.value.values.toList()
+    }
+
+    override suspend fun editComInfo(info: ComInfo): List<ComInfo> {
+        val find = _comMap.value[info.com] ?: return _comMap.value.values.toList()
+        val newMap = _comMap.value + (find.com to info)
         _comMap.value = newMap
         return _comMap.value.values.toList()
     }
@@ -51,20 +62,11 @@ class UartRepositoryImpl(private val uartDatasource: UartDatasource) : UartRepos
         println("UartRepositoryImpl::open")
         printMap()
         val map = _comMap.value.toMutableMap()
-        for ((k, v) in map) {
-            if (k == com) {
-                if (v.opened) {
-                    print("<$com>已经开启\n")
-                    break
-                }
-
-                break
-            }
-        }
+        val find: ComInfo = _comMap.value[com] ?: return false
         // 打开串口
-        val handle = uartDatasource.open(com, rate)
+        val handle = uartDatasource.open(find.com, find.rate)
         println("open handle = $handle")
-        val state = ComInfo(com, status = ComStatus.CONNECTED(handle))
+        val state = find.copy(status = ComStatus.CONNECTED(handle))
         map[com] = state
         _comMap.value = map
         printMap()
@@ -190,6 +192,7 @@ class UartRepositoryImpl(private val uartDatasource: UartDatasource) : UartRepos
 
     companion object {
         private const val MAX = 600 * 1024
+        private const val DEFAULT_RATE = 460800
     }
 
 }

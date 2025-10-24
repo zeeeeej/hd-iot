@@ -24,6 +24,8 @@ zeeeeej = "1.0.2"
 navigation = "2.8.0-alpha08"
 kotlinx-datetime = "0.6.1"
 kotlinx-serialization = "1.7.0"
+# https://composelibraries.com/wajahatkarim3/Flippable
+flippable = "1.5.4"
 
 # Koin
 koin = "3.6.0-alpha3"
@@ -63,6 +65,7 @@ koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinCompose" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koinComposeMultiplatform" }
+flippable = { module = "com.wajahatkarim:flippable", version.ref = "flippable" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

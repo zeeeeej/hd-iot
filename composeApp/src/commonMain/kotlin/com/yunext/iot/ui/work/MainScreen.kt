@@ -6,29 +6,38 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.content.MediaType.Companion.Text
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import color
 import com.yunext.iot.ui.compoent.Effect
 import com.yunext.iot.ui.compoent.randomBG
+import com.yunext.iot.ui.uart.ByteBlock
+import com.yunext.iot.ui.uart.ByteData
+import com.yunext.iot.ui.uart.ByteDisplayMode
 import com.yunext.iot.ui.uart.ComInfoVO
 import com.yunext.iot.ui.uart.UartInfoItemV2
 import com.yunext.iot.ui.uart.UartInfoListSplit
+import com.yunext.kotlin.kmp.common.util.currentTime
 import randomZhongGuoSe
 
 @Composable
@@ -39,6 +48,7 @@ fun MainScreen(
     receiveData: String, onSend: (ComInfoVO, String) -> Unit,
     onConnect: (ComInfoVO) -> Unit,
     onDisconnect: (ComInfoVO) -> Unit,
+    onEditRate: (ComInfoVO) -> Unit,
 ) {
     var currentComInfo: ComInfoVO? by remember {
         mutableStateOf(null)
@@ -46,6 +56,10 @@ fun MainScreen(
 
     var selectedComInfoDialog: Boolean by remember {
         mutableStateOf(false)
+    }
+
+    var byteDisplayMode: ByteDisplayMode by remember {
+        mutableStateOf(ByteDisplayMode.Hex)
     }
 
     LaunchedEffect(comInfoList) {
@@ -96,40 +110,101 @@ fun MainScreen(
                     onSelectList = {
                         if (comInfoList.isEmpty()) return@CurrentComInfo
                         selectedComInfoDialog = true
-                    })
-            }
-            AnimatedContent(
-                when (sendEffect) {
-                    Effect.Completed -> ("发送完毕")
-                    is Effect.Fail<*> -> ("发送失败!${sendEffect.output.message}")
-                    Effect.Idle -> {
-                        ""
-                    }
-
-                    is Effect.Progress<*, *> -> ("发送中 ... ... ${sendEffect.progress}")
-                    is Effect.Success<*, *> -> ("发送成功！")
-                }
-            ) {
-                Text(
-                    it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = randomZhongGuoSe().color,
-                    fontWeight = FontWeight.Bold
+                    }, onEditRate = onEditRate
                 )
             }
 
-            Box(modifier.weight(1f).randomBG().padding(12.dp).fillMaxWidth()) {
+            CurrentByteDisplayMode(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                mode = byteDisplayMode
+            ) {
+                byteDisplayMode = it
+            }
+            Box(
+                modifier.weight(1f)
+                    //.randomBG()
+                    .padding(12.dp).fillMaxWidth()
+            ) {
                 Sender(modifier = Modifier.fillMaxSize(), onSend = {
                     val info = currentComInfo ?: return@Sender
                     onSend(info, it)
-                })
+                }, mode = byteDisplayMode, sendEffect = sendEffect)
             }
 
-            Box(modifier.weight(1f).randomBG().padding(12.dp).fillMaxWidth()) {
-                Receiver(modifier = Modifier.fillMaxSize(), data = receiveData)
+            Box(
+                modifier.weight(1f)
+                    //.randomBG()
+                    .padding(12.dp).fillMaxWidth()
+            ) {
+                Receiver(
+                    modifier = Modifier.fillMaxSize(),
+                    data = receiveData,
+                    mode = byteDisplayMode
+                )
             }
 
         }
+    }
+}
+
+@Composable
+private fun CurrentByteDisplayMode(
+    modifier: Modifier,
+    mode: ByteDisplayMode,
+    onChanged: (ByteDisplayMode) -> Unit
+) {
+
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "显示模式：",
+            style = MaterialTheme.typography.bodySmall,
+            color = randomZhongGuoSe().color,
+            fontWeight = FontWeight.Normal,
+        )
+        Text(
+            when (mode) {
+                ByteDisplayMode.Asic -> "ASCII"
+                ByteDisplayMode.Hex -> "HEX"
+                ByteDisplayMode.Oct -> "OCT"
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = randomZhongGuoSe().color,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.clickable {
+                onChanged(
+                    when (mode) {
+                        ByteDisplayMode.Asic -> ByteDisplayMode.Hex
+                        ByteDisplayMode.Hex -> ByteDisplayMode.Oct
+                        ByteDisplayMode.Oct -> ByteDisplayMode.Asic
+                    }
+                )
+            }
+        )
+    }
+
+}
+
+@Composable
+private fun SendEffect(modifier: Modifier, sendEffect: Effect<String, ByteArray>) {
+    AnimatedContent(
+        modifier = modifier,
+        targetState = when (sendEffect) {
+            Effect.Completed -> ("发送完毕")
+            is Effect.Fail<*> -> ("发送失败!${sendEffect.output.message}")
+            Effect.Idle -> {
+                ""
+            }
+
+            is Effect.Progress<*, *> -> ("发送中 ... ... ${sendEffect.progress}")
+            is Effect.Success<*, *> -> ("发送成功！")
+        }
+    ) {
+        Text(
+            it,
+            style = MaterialTheme.typography.bodySmall.copy(textAlign = TextAlign.End),
+            color = randomZhongGuoSe().color,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -138,7 +213,8 @@ private fun CurrentComInfo(
     modifier: Modifier = Modifier, current: ComInfoVO?,
     onConnect: (ComInfoVO) -> Unit,
     onDisconnect: (ComInfoVO) -> Unit,
-    onSelectList: () -> Unit
+    onSelectList: () -> Unit,
+    onEditRate: (ComInfoVO) -> Unit
 ) {
     Box(modifier = modifier.fillMaxWidth().clickable { onSelectList() }) {
         if (current != null) {
@@ -150,6 +226,8 @@ private fun CurrentComInfo(
                 },
                 onDisconnect = {
                     onDisconnect(current)
+                }, onEditRate = {
+                    onEditRate(current.copy(rate = it))
                 }
             )
         } else {
@@ -159,10 +237,30 @@ private fun CurrentComInfo(
 }
 
 @Composable
-private fun Sender(modifier: Modifier = Modifier, onSend: (String) -> Unit) {
+private fun Sender(
+    modifier: Modifier = Modifier,
+    mode: ByteDisplayMode,
+    sendEffect: Effect<String, ByteArray>,
+    onSend: (String) -> Unit
+) {
     var data by remember { mutableStateOf("AA5aeec201000000a06ead") }
+    val list: List<ByteData> by remember(data, mode) {
+        derivedStateOf {
+            try {
+                data.hexToByteArray().mapIndexed() { index, data ->
+                    ByteData(index, data, mode)
+                }
+            } catch (e: Throwable) {
+                listOf()
+            }
+        }
+    }
     Column(modifier = modifier) {
-        Text("[发送]")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("[发送]")
+            SendEffect(sendEffect = sendEffect, modifier = Modifier.weight(1f))
+        }
+
         TextField(
             value = data,
             onValueChange = { v ->
@@ -181,13 +279,38 @@ private fun Sender(modifier: Modifier = Modifier, onSend: (String) -> Unit) {
                 })
             }
         )
+
+
+        ByteBlock(
+            modifier = Modifier.wrapContentSize(),
+            list = list
+        )
     }
 }
 
 @Composable
-private fun Receiver(modifier: Modifier = Modifier, data: String) {
-    Column(modifier = Modifier) {
+private fun Receiver(
+    modifier: Modifier = Modifier, data: String,
+    mode: ByteDisplayMode,
+) {
+
+    val list: List<ByteData> by remember(data, mode) {
+        derivedStateOf {
+            try {
+                data.hexToByteArray().mapIndexed() { index, data ->
+                    ByteData(index, data, mode = mode)
+                }
+            } catch (e: Throwable) {
+                listOf()
+            }
+        }
+    }
+    Column(modifier = modifier) {
         Text("[接受]")
         Text(data)
+        ByteBlock(
+            modifier = Modifier.wrapContentSize(),
+            list = list,
+        )
     }
 }
