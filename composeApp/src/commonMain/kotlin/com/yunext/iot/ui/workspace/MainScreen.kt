@@ -1,9 +1,8 @@
-package com.yunext.iot.ui.work
+package com.yunext.iot.ui.workspace
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.content.MediaType.Companion.Text
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,16 +29,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import color
 import com.yunext.iot.ui.compoent.Effect
-import com.yunext.iot.ui.compoent.randomBG
 import com.yunext.iot.ui.uart.ByteBlock
 import com.yunext.iot.ui.uart.ByteData
 import com.yunext.iot.ui.uart.ByteDisplayMode
 import com.yunext.iot.ui.uart.ComInfoVO
 import com.yunext.iot.ui.uart.UartInfoItemV2
 import com.yunext.iot.ui.uart.UartInfoListSplit
-import com.yunext.kotlin.kmp.common.util.currentTime
 import randomZhongGuoSe
 
+/**
+ * Menu-主页
+ */
 @Composable
 fun MainScreen(
     modifier: Modifier,
@@ -109,7 +109,7 @@ fun MainScreen(
                     onDisconnect = onDisconnect,
                     onSelectList = {
                         if (comInfoList.isEmpty()) return@CurrentComInfo
-                        selectedComInfoDialog = true
+                        selectedComInfoDialog = !selectedComInfoDialog
                     }, onEditRate = onEditRate
                 )
             }

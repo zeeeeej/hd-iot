@@ -42,6 +42,9 @@ sealed interface ByteDisplayMode {
 }
 
 data class ByteData(val index: Int, val byte: Byte, val mode: ByteDisplayMode = ByteDisplayMode.Hex)
+fun ByteArray.toByteData() = this.mapIndexed { index, byte ->
+    ByteData(index,byte)
+}
 
 @Composable
 fun ByteBlock(modifier: Modifier, list: List<ByteData>) {

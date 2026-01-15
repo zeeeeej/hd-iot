@@ -63,8 +63,15 @@ class NativeLibrary {
 
             try {
                 System.load(libraryPath)
+
+//                println("111111")
+//                NativeFunctions().uartList()
+//                println("2222222")
+//                NativeFunctions.uartReading(0, 0,1)
+                println("加载JNI成功！" )
             } catch (e: UnsatisfiedLinkError) {
-                println("加载JNI失败！")
+                e.printStackTrace()
+                println("（1）加载JNI失败！$e" )
                 // 如果 System.loadLibrary 失败，尝试从资源加载
                 loadLibraryFromResources(libraryPath)
             }

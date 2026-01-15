@@ -3,6 +3,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {
+        maven("https://mirrors.tencent.com/nexus/repository/maven-public/")
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -17,6 +18,8 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
+        maven("https://mirrors.tencent.com/nexus/repository/maven-public/")
+
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")

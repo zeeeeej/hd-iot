@@ -16,17 +16,15 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.onClick
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,13 +40,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import color
-import com.yunext.iot.domain.ComInfo
-import com.yunext.iot.domain.ComStatus
+import com.yunext.iot.domain.uart.UartInfo
+import com.yunext.iot.domain.uart.UartStatus
 import randomZhongGuoSe
 
-data class ComInfoVO(val path: String, val rate: Int, val status: ComStatus)
+data class ComInfoVO(val path: String, val rate: Int, val status: UartStatus)
 
-fun ComInfoVO(comInfo: ComInfo): ComInfoVO {
+fun ComInfoVO(comInfo: UartInfo): ComInfoVO {
     return ComInfoVO(path = comInfo.com, rate = comInfo.rate, status = comInfo.status)
 }
 
@@ -198,9 +196,9 @@ private fun UartInfoItem(
                 .wrapContentWidth(),
             text = "[${
                 when (info.status) {
-                    is ComStatus.CONNECTED -> "已连接"
-                    ComStatus.DETACH -> "未找到"
-                    ComStatus.DISCONNECTED -> "未连接"
+                    is UartStatus.CONNECTED -> "已连接"
+                    UartStatus.DETACH -> "未找到"
+                    UartStatus.DISCONNECTED -> "未连接"
                 }
             }]", style = MaterialTheme.typography.bodySmall,
             color = if (areSelected()) Color.Red else Color.Gray
@@ -236,7 +234,7 @@ private fun UartInfoItem(
             Spacer(Modifier.width(4.dp))
 
             when (info.status) {
-                is ComStatus.CONNECTED -> {
+                is UartStatus.CONNECTED -> {
                     Text(
                         "关闭串口",
                         Modifier.clickable { onDisconnect() },
@@ -247,8 +245,8 @@ private fun UartInfoItem(
                     )
                 }
 
-                ComStatus.DETACH -> {}
-                ComStatus.DISCONNECTED -> {
+                UartStatus.DETACH -> {}
+                UartStatus.DISCONNECTED -> {
                     Text(
                         "打开串口",
                         Modifier.clickable { onConnect() },
@@ -278,7 +276,17 @@ internal fun UartInfoItemV2(
     }
 
     var currentRate: Int by remember {
-        mutableStateOf(info.rate)
+        mutableIntStateOf(info.rate)
+    }
+
+    val connected: Boolean by remember {
+        derivedStateOf {
+            when (info.status) {
+                is UartStatus.CONNECTED -> true
+                UartStatus.DETACH -> false
+                UartStatus.DISCONNECTED -> false
+            }
+        }
     }
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
 
@@ -289,9 +297,9 @@ internal fun UartInfoItemV2(
                 .wrapContentWidth(),
             text = "[${
                 when (info.status) {
-                    is ComStatus.CONNECTED -> "已连接"
-                    ComStatus.DETACH -> "未找到"
-                    ComStatus.DISCONNECTED -> "未连接"
+                    is UartStatus.CONNECTED -> "已连接"
+                    UartStatus.DETACH -> "未找到"
+                    UartStatus.DISCONNECTED -> "未连接"
                 }
             }]", style = MaterialTheme.typography.bodySmall,
             color = Color.Gray
@@ -331,21 +339,36 @@ internal fun UartInfoItemV2(
         } else {
             Text(
                 modifier = Modifier
-                    .border(color = randomZhongGuoSe().color, width = 1.dp)
+                    .border(
+                        color = if (connected) ZhongGuoSe.晓灰.color else randomZhongGuoSe().color,
+                        width = 1.dp
+                    )
                     .padding(horizontal = 6.dp, vertical = 4.dp)
-                    .clickable(info.status == ComStatus.DISCONNECTED) { editRate = true },
+                    .clickable(!connected) { editRate = true },
                 text = info.rate.toString(),
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.primary,
-                    textDecoration = TextDecoration.Underline
-                ),
+                style = when (info.status) {
+                    is UartStatus.CONNECTED -> MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.primary,
+                        textDecoration = TextDecoration.None
+                    )
+
+                    UartStatus.DETACH -> MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.primary,
+                        textDecoration = TextDecoration.Underline
+                    )
+
+                    UartStatus.DISCONNECTED -> MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.primary,
+                        textDecoration = TextDecoration.Underline
+                    )
+                },
                 color = ZhongGuoSe.金叶黄.color
             )
         }
 
 
         when (info.status) {
-            is ComStatus.CONNECTED -> {
+            is UartStatus.CONNECTED -> {
                 Text(
                     "关闭串口",
                     Modifier.clickable { onDisconnect() },
@@ -356,8 +379,8 @@ internal fun UartInfoItemV2(
                 )
             }
 
-            ComStatus.DETACH -> {}
-            ComStatus.DISCONNECTED -> {
+            UartStatus.DETACH -> {}
+            UartStatus.DISCONNECTED -> {
                 Text(
                     "打开串口",
                     Modifier.clickable { onConnect() },

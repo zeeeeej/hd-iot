@@ -25,16 +25,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.yunext.iot.di.koinViewModel
+import com.yunext.iot.domain.uart.UartStatus
 import com.yunext.iot.ui.compoent.Effect
 import com.yunext.iot.ui.compoent.Toast
 import com.yunext.iot.ui.menu.MenuTypeVO
 import com.yunext.iot.ui.vm.HomeState
 import com.yunext.iot.ui.vm.HomeVM
+import com.yunext.kotlin.kmp.common.util.currentTime
+import com.yunext.kotlin.kmp.common.util.hdUUID
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
+/**
+ * App应用
+ */
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun AppInternal(modifier: Modifier = Modifier) {
     val viewModel = koinViewModel<HomeVM>()
     val state by viewModel.state.collectAsState(HomeState.EMPTY)
     var selectedMenu: MenuTypeVO by remember {
@@ -75,7 +81,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 Modifier.width(384.dp).fillMaxHeight()
                     .border(1.dp, color = Color.Gray)
             ) {
-                MenuScreen(
+                MenuSpace(
                     modifier = Modifier.fillMaxSize(),
                     selectedMenu = selectedMenu,
                     onMenuChanged = {
@@ -91,8 +97,12 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                         viewModel.listComInfo()
                     },
                     onComInfoAdd = {
-                        viewModel.refreshCom()
-                        selectComDialog = true
+                        if (selectComDialog) {
+                            selectComDialog = false
+                        } else {
+                            viewModel.refreshCom()
+                            selectComDialog = true
+                        }
                     },
                     onComInfoDisconnect = {
                         viewModel.disconnectComInfo(it.path)
@@ -123,7 +133,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                         .border(1.dp, color = Color.Green)
 
                 ) {
-                    WorkScreen(
+                    WorkSpace(
                         Modifier,
                         menuType = selectedMenu,
                         receiveData = state.receiveData,
@@ -139,6 +149,27 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                         }, sendEffect = state.sendUartDataEffect,
                         onEditRate = {
                             viewModel.editComRate(it)
+                        }, onUartSendByteArray = { protocol, data ->
+                            val list = state.comInfoList
+                            val uart = list.firstOrNull() {
+                                it.status is UartStatus.CONNECTED
+                            }
+                            val actionId =
+                                "Protocol${protocol.cmd}${protocol.address}${currentTime()}-${
+                                    hdUUID(16)
+                                }"
+                            viewModel.send(actionId, uart, protocol, data)
+                        }, onUartSendAppOTAByteArray = {
+                                protocol, data ->
+                            val list = state.comInfoList
+                            val uart = list.firstOrNull() {
+                                it.status is UartStatus.CONNECTED
+                            }
+                            val actionId =
+                                "Protocol${protocol.cmd}${protocol.address}${currentTime()}-${
+                                    hdUUID(16)
+                                }"
+                            viewModel.sendAppOTA(actionId, uart, protocol, data)
                         }
                     )
                 }
@@ -151,7 +182,11 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 //                        .height(150.dp)
                         .fillMaxWidth().border(1.dp, color = Color.Blue)
                 ) {
-                    LogcatScreen(Modifier)
+                    LogcatSpace(Modifier.fillMaxSize(), list = state.logcatHistory, onShare = {
+                        viewModel.shareLogcat(it)
+                    }, onClear = {
+                        viewModel.clearLogcat()
+                    })
                 }
             }
         }

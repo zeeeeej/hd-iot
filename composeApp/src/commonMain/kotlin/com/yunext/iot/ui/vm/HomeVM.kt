@@ -1,24 +1,40 @@
 package com.yunext.iot.ui.vm
 
+import ZhongGuoSe
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.yunext.iot.domain.Com
-import com.yunext.iot.domain.ComException
-import com.yunext.iot.domain.ComInfo
-import com.yunext.iot.domain.ComStatus
+import color
+import com.yunext.iot.domain.uart.Uart
+import com.yunext.iot.domain.uart.UartException
+import com.yunext.iot.domain.uart.UartInfo
+import com.yunext.iot.domain.uart.UartStatus
+import com.yunext.iot.domain.uart.InputLogcat
+import com.yunext.iot.domain.uart.NormalLogcat
+import com.yunext.iot.domain.uart.OutputLogcat
+import com.yunext.iot.domain.generateHDClipboard
+import com.yunext.iot.domain.project.HDProject
 import com.yunext.iot.repository.UartRepository
 import com.yunext.iot.ui.compoent.Effect
 import com.yunext.iot.ui.compoent.effectCompleted
 import com.yunext.iot.ui.compoent.effectIdle
+import com.yunext.iot.ui.protocol.ProtocolVO
 import com.yunext.iot.ui.uart.ComInfoVO
 import com.yunext.iot.ui.uart.ComVO
+import com.yunext.iot.ui.uart.LogcatHistory
+import com.yunext.iot.ui.uart.display
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -26,225 +42,152 @@ data class HomeState(
     val comList: List<ComVO> = emptyList(),
     val comInfoList: List<ComInfoVO> = emptyList(),
     val receiveData: String = "",
-    val sendUartDataEffect: Effect<Com, ByteArray> = effectIdle(),
+    val sendUartDataEffect: Effect<Uart, ByteArray> = effectIdle(),
     val globalToastEffect: Effect<String, Unit> = effectIdle(),
+    val logcatHistory: List<LogcatHistory> = emptyList()
 ) {
     companion object {
         val EMPTY = HomeState()
     }
 }
 
-class HomeVM(private val uartRepo: UartRepository) : ViewModel() {
+class HomeVM(private val snap:Snapshot) : ViewModel() {
 
-    private val comListFlow: MutableStateFlow<List<ComVO>> = MutableStateFlow(emptyList())
-    private val comInfoListFlow: MutableStateFlow<List<ComInfoVO>> = MutableStateFlow(emptyList())
-    private val receiverDataFlow: MutableStateFlow<String> = MutableStateFlow("")
-    private val globalToastEffect: MutableStateFlow<Effect<String, Unit>> =
-        MutableStateFlow(effectIdle())
-    private val sendUartDataEffectFlow: MutableStateFlow<Effect<Com, ByteArray>> =
-        MutableStateFlow(effectIdle())
+    private val comListFlow: StateFlow<List<ComVO>> = snap.comListFlow
+    private val comInfoListFlow: StateFlow<List<ComInfoVO>> = snap.comInfoListFlow
+    private val logcatListFlow: StateFlow<List<LogcatHistory>> =
+        snap.logcatListFlow
+    private val receiverDataFlow: StateFlow<String> = snap.receiverDataFlow
+    private val globalToastEffect: StateFlow<Effect<String, Unit>> =
+        snap.globalToastEffect
+    private val sendUartDataEffectFlow:StateFlow<Effect<Uart, ByteArray>> =
+       snap.sendUartDataEffectFlow
 
     private companion object {
         private const val TAG = "HomeVM"
     }
 
+    @Suppress("UNCHECKED_CAST")
     val state: Flow<HomeState> = combine(
         comListFlow,
         comInfoListFlow,
         receiverDataFlow,
         globalToastEffect,
         sendUartDataEffectFlow,
-    ) { comList, comInfoList, receiveData, globalToast, sendUartDataEffect ->
+        logcatListFlow
+    ) { data ->
+        val comList = data[0] as List<ComVO>
+        val comInfoList = data[1] as List<ComInfoVO>
+        val receiveData = data[2] as String
+        val globalToast = data[3] as Effect<String, Unit>
+        val sendUartDataEffect = data[4] as Effect<Uart, ByteArray>
+        val logcat = data[5] as List<LogcatHistory>
         HomeState(
             comList,
             comInfoList = comInfoList,
             receiveData,
             globalToastEffect = globalToast,
-            sendUartDataEffect = sendUartDataEffect
+            sendUartDataEffect = sendUartDataEffect,
+            logcatHistory = logcat
         )
     }
 
-    private var clearToastJob: Job? = null
-
-    fun clearToast() {
-        clearToastJob?.cancel()
-        globalToastEffect.value = effectCompleted()
+    init {
+       snap.init(viewModelScope)
     }
 
-    private fun toast(msg: String) {
-        if (msg.isBlank()) return
-        clearToastJob?.cancel()
-        clearToastJob = viewModelScope.launch {
-            globalToastEffect.value = effectIdle()
-            globalToastEffect.value = Effect.Progress(msg, 0)
-            delay(2000)
-            globalToastEffect.value = effectCompleted()
-        }
-    }
+
+
+
 
     fun refreshCom() {
         println("$TAG ::refreshCom")
-        viewModelScope.launch {
-            try {
-                comListFlow.value = uartRepo.list().map {
-                    ComVO(it)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+        snap.run {
+            viewModelScope.refreshCom()
+        }
+
+    }
+
+    fun send(     actionId: String,comInfo: ComInfoVO?,protocol: ProtocolVO, data: ByteArray) {
+        snap.run {
+            viewModelScope.send(actionId,comInfo,protocol,data)
+        }
+    }
+
+    fun sendAppOTA(     actionId: String,comInfo: ComInfoVO?,protocol: ProtocolVO, data: ByteArray) {
+        snap.run {
+            viewModelScope.appOTA(actionId,comInfo,protocol,data)
         }
     }
 
     fun send(comInfo: ComInfoVO, data: String) {
-        sendInternal(comInfo) {
-
-            when (comInfo.status) {
-                is ComStatus.CONNECTED -> {
-                    sendUartDataEffectFlow.value =
-                        Effect.Progress(comInfo.path, "write ...")
-                    val result =
-                        withContext(Dispatchers.IO) {
-                            uartRepo.write(comInfo.path, data = data.hexToByteArray())
-                        }
-
-                    if (result > 0) {
-                        sendUartDataEffectFlow.value =
-                            Effect.Progress(comInfo.path, "read ...")
-                        val bytes = withContext(Dispatchers.IO) {
-                            uartRepo.read(comInfo.path)
-                        }
-                        receiverDataFlow.value = bytes.toHexString()
-                        sendUartDataEffectFlow.value =
-                            Effect.Success(comInfo.path, bytes)
-                    } else {
-                        toast("发送失败")
-                        sendUartDataEffectFlow.value =
-                            Effect.Fail(comInfo.path, ComException("发送失败"))
-                    }
-                }
-
-                ComStatus.DETACH -> {
-                    toast("请检查串口")
-                    sendUartDataEffectFlow.value =
-                        Effect.Fail(comInfo.path, ComException("ComStatus.DETACH请检查串口"))
-                }
-
-                ComStatus.DISCONNECTED -> {
-                    toast("请打开串口")
-                }
-            }
-
-
+        snap.run {
+            viewModelScope.   send(comInfo,data)
         }
+
     }
 
-    private fun sendInternal(comInfo: ComInfoVO, block: suspend () -> Unit) {
-        println("$TAG ::send")
-        viewModelScope.launch {
-            try {
-                sendUartDataEffectFlow.value = effectIdle()
-                block()
 
-            } catch (e: Throwable) {
-                if (e !is CancellationException) {
-                    toast("发送失败$e")
-                    sendUartDataEffectFlow.value =
-                        Effect.Fail(comInfo.path, e)
-                }
-            } finally {
-                sendUartDataEffectFlow.value = effectCompleted()
-            }
-        }
-    }
 
     fun listComInfo() {
-        println("$TAG ::listComInfo")
-        viewModelScope.launch {
-            try {
-                comInfoListFlow.value = uartRepo.listComInfo().map {
-                    ComInfoVO(it)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+        snap.run {
+            viewModelScope.listComInfo()
         }
     }
 
     fun addComInfo(com: String) {
-        println("$TAG ::addComInfo")
-        viewModelScope.launch {
-            try {
-                val list = uartRepo.addComInfo(com)
-                comInfoListFlow.value = list.map {
-                    ComInfoVO(it)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+        snap.run {
+            viewModelScope.addComInfo(com)
         }
     }
 
     fun disconnectComInfo(com: String) {
-        viewModelScope.launch {
-            try {
-                uartRepo.close(com)
-            } catch (e: Throwable) {
-                toast("关闭[${com}]失败 ${e.message}")
-            } finally {
-                listComInfo()
-            }
+        snap.run {
+            viewModelScope.disconnectComInfo(com)
         }
     }
 
     fun connectComInfo(com: String) {
-        viewModelScope.launch {
-            try {
-                val opened = uartRepo.open(com, 0)
-                println("open ${com} result:$opened")
-                if (opened) {
-                    // debugWrite(comVO.com)
-                    toast("打开[${com}]成功")
-                } else {
-                    toast("打开[${com}]失败")
-                }
-
-            } catch (e: Throwable) {
-                toast("打开[${com}]失败 ${e.message}")
-            } finally {
-                listComInfo()
-            }
+        snap.run {
+            viewModelScope.connectComInfo(com)
         }
     }
 
     fun deleteComInfo(info: ComInfoVO) {
-        println("$TAG ::deleteComInfo")
-        viewModelScope.launch {
-            try {
-                val list = uartRepo.deleteComInfo(info.path)
-                comInfoListFlow.value = list.map {
-                    ComInfoVO(it)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+        snap.run {
+            viewModelScope.deleteComInfo(info)
         }
     }
 
     fun editComRate(info: ComInfoVO) {
-        println("$TAG ::editComRate")
-        viewModelScope.launch {
-            try {
-                val list = uartRepo.editComInfo(
-                    ComInfo(
-                        com = info.path, rate = info.rate, status = info.status
-                    )
-                )
-                comInfoListFlow.value = list.map {
-                    ComInfoVO(it)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+        snap.run {
+            viewModelScope.editComRate(info)
+        }
+
+    }
+
+    fun clearLogcat() {
+        snap.run {
+            viewModelScope.clearLogcat()
+        }
+
+    }
+
+    fun clearToast() {
+        snap.run { clearToast()
+        }
+
+    }
+
+    fun shareLogcat(it: List<LogcatHistory>) {
+        snap.run {
+            viewModelScope.shareLogcat(it)
+        }
+    }
+
+    fun clearAllLogcat() {
+        snap.run {
+            viewModelScope.clearLogcat()
         }
     }
 }

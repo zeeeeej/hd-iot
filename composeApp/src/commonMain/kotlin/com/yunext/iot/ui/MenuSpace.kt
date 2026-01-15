@@ -31,8 +31,11 @@ import com.yunext.iot.ui.uart.ComInfoVO
 import com.yunext.iot.ui.uart.ComVO
 import com.yunext.iot.ui.uart.UartComSpit
 
+/**
+ * 菜单部分
+ */
 @Composable
-fun MenuScreen(
+fun MenuSpace(
     modifier: Modifier,
     selectedMenu: MenuTypeVO,
     onMenuChanged: (MenuVO) -> Unit,

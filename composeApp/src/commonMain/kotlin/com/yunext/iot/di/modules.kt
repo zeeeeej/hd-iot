@@ -4,9 +4,13 @@ import com.yunext.iot.datasource.UartDatasource
 import com.yunext.iot.datasource.UartDatasourceImpl
 import com.yunext.iot.model.UartManager
 import com.yunext.iot.model.UartManagerImpl
+import com.yunext.iot.repository.ProtocolRepository
+import com.yunext.iot.repository.ProtocolRepositoryImpl
 import com.yunext.iot.repository.UartRepository
 import com.yunext.iot.repository.UartRepositoryImpl
 import com.yunext.iot.ui.vm.HomeVM
+import com.yunext.iot.ui.vm.SerialProtocolVM
+import com.yunext.iot.ui.vm.Snapshot
 import kotlinx.serialization.json.Json
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
@@ -19,10 +23,15 @@ val appModule = module {
 //    single<HttpDatasource> { HttpDatasourceImpl() } //bind UserDatasource::class
     single<UartRepository> { UartRepositoryImpl(get()) }
     single<UartDatasource> { UartDatasourceImpl(get()) }
+    single<ProtocolRepository> { ProtocolRepositoryImpl() }
+    single<Snapshot> { Snapshot(get()) }
 
     single<String> { "abc" }
     factory { params ->
         HomeVM(get())
+    }
+    factory { params ->
+        SerialProtocolVM(get(),get())
     }
 
 //    factory { params ->

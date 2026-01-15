@@ -10,21 +10,29 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.yunext.iot.ui.compoent.Effect
 import com.yunext.iot.ui.menu.MenuTypeVO
+import com.yunext.iot.ui.protocol.ProtocolVO
 import com.yunext.iot.ui.uart.ComInfoVO
-import com.yunext.iot.ui.work.DebugScreen
-import com.yunext.iot.ui.work.MainScreen
-import com.yunext.iot.ui.work.MasterScreen
-import com.yunext.iot.ui.work.SerialScreen
-import com.yunext.iot.ui.work.SettingScreen
+import com.yunext.iot.ui.workspace.DebugScreen
+import com.yunext.iot.ui.workspace.MainScreen
+import com.yunext.iot.ui.workspace.MasterScreen
+import com.yunext.iot.ui.workspace.SerialProtocolScreen
+import com.yunext.iot.ui.workspace.SerialProtocolScreenAction
+import com.yunext.iot.ui.workspace.SerialProtocolScreenAppOTAAction
+import com.yunext.iot.ui.workspace.SettingScreen
 
+/**
+ * 工作部分
+ */
 @Composable
-fun WorkScreen(
+fun WorkSpace(
     modifier: Modifier,
     menuType: MenuTypeVO,
     comInfoList:List<ComInfoVO>,
     receiveData: String,
     sendEffect: Effect<String, ByteArray>,
     onUartSend: (ComInfoVO, String) -> Unit,
+    onUartSendByteArray: SerialProtocolScreenAction,
+    onUartSendAppOTAByteArray: SerialProtocolScreenAppOTAAction,
     onUartConnect: (ComInfoVO) -> Unit,
     onUartDisconnect: (ComInfoVO) -> Unit,
     onEditRate: (ComInfoVO) -> Unit,
@@ -58,7 +66,11 @@ fun WorkScreen(
             )
         }
         composable(route = MenuTypeVO.Serial.name) {
-            SerialScreen(Modifier)
+            SerialProtocolScreen(Modifier, onSend = {p,d->
+                onUartSendByteArray.invoke(p,d)
+            }, onSendAppOta = {p,d->
+                onUartSendAppOTAByteArray.invoke(p,d)
+            })
         }
         composable(route = MenuTypeVO.Master.name) {
             MasterScreen(Modifier)

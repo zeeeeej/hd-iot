@@ -13,9 +13,11 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.yunext.iot.di.KoinInit
+import com.yunext.iot.jni.NativeFunctions
 
 import com.yunext.iot.jni.NativeLibrary
 import kotlinx.coroutines.delay
+import test_rs485
 import kotlin.random.Random
 
 fun main() = application {
@@ -39,7 +41,8 @@ fun main() = application {
             mutableStateOf("")
         }
         Button (onClick = {
-
+            println("test btn")
+            test_rs485()
 //            NativeFunctions.init()
 
             // 自动加载 JNI 库
@@ -51,14 +54,14 @@ fun main() = application {
             try {
                 // 加载 JNI 库
                 //DebugJniLoader.ensureLoaded()
-
+                val nativeFunctions = NativeFunctions
                 // 调用 JNI 方法
-                val result = NativeFunctions.addNumbers(10, Random.nextInt(100))
+                val result = nativeFunctions.addNumbers(10, Random.nextInt(100))
                 println("JNI result: $result")
                 txt = "$result"
-                val message = NativeFunctions.getMessage()
+                val message = nativeFunctions.getMessage()
                 println("JNI message: $message")
-                val version = NativeFunctions.uartVersion(1)
+                val version = nativeFunctions.uartVersion(1)
                 txt = "$result + $message v:$version"
             } catch (e: Exception) {
                 txt =  e.message?:"error"
